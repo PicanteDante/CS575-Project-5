@@ -18,6 +18,10 @@
 #include "helper_functions.h"
 #include "helper_cuda.h"
 
+// Setting up the configurations for NUMTRIALS and BLOCKSIZE:
+const int numTrialsSizes[] = { 1024, 4096, 16384, 65536, 262144, 1048576, 2097152, 4194304 };
+const int blockSizeSizes[] = { 8, 32, 64, 128, 256, 512 };
+
 // setting the number of trials in the monte carlo simulation:
 #ifndef NUMTRIALS
 #define NUMTRIALS	131072
@@ -115,7 +119,7 @@ MonteCarlo( IN float* dbeforey, IN float* daftery, IN float* ddistx, OUT int* ds
 	//unsigned int wgNum    = blockIdx.x;		// don't need this for this project
 	//unsigned int tnum     = threadIdx.x;		// don't need this for this project
 	// "gid", the global identifier, is essentially the for-loop index:
-	unsigned int gid = blockIdx.x * blockDim.x + threadIdx.x;
+	unsigned int gid = 0//blockIdx.x * blockDim.x + threadIdx.x;
 
 	dsuccesses[gid] = 0;
 
