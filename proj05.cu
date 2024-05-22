@@ -121,15 +121,18 @@ MonteCarlo( IN float* dbeforey, IN float* daftery, IN float* ddistx, OUT int* ds
 
 	// randomize everything:
 
-	float beforey = ?????
-	float aftery  = ?????
-	float distx   = ?????
+	float beforey = dbeforey[gid];
+	float aftery  = daftery[gid];
+	float distx   = ddistx[gid];
 
-	float vx = ?????
-	float t  = ?????
-	float x  = ?????
+	// Horizontal velocity of the ball
+	float vx = sqrt(2.0f * GRAVITY * (beforey - aftery));
+	// Time to fall from aftery to the ground
+    float t  = sqrt(2.0f * aftery / GRAVITY);
+    // Horizontal distance traveled during the time of fall
+    float x  = vx * t;
 	if (fabs(x - distx) <= RADIUS)
-		?????
+		dsuccesses[gid] = 1; //[error] might need to be +=1
 }
 
 
@@ -162,9 +165,9 @@ main(int argc, char* argv[])
 
 	// copy host memory to the device:
 
-	cudaMemcpy(?????, ?????, NUMTRIALS * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(?????,  ?????,  NUMTRIALS * sizeof(float), cudaMemcpyHostToDevice);
-	cudaMemcpy(?????,   ?????,   NUMTRIALS * sizeof(float),   cudaMemcpyHostToDevice);
+	cudaMemcpy(dbeforey, hbeforey, NUMTRIALS * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(daftery,  haftery,  NUMTRIALS * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(ddistx,   hdistx,   NUMTRIALS * sizeof(float), cudaMemcpyHostToDevice);
 
 	CudaCheckError();
 
@@ -188,8 +191,8 @@ main(int argc, char* argv[])
 	CudaCheckError();
 
 	// execute the kernel:
-	MonteCarlo<<< grid, threads >>>( ?????, ?????, ?????, ????? );
-
+	MonteCarlo<<< grid, threads >>>( dbeforey, daftery, ddistx, dsuccesses );
+	
 	// record the stop event:
 	cudaEventRecord(stop, NULL);
 
@@ -201,14 +204,14 @@ main(int argc, char* argv[])
 	CudaCheckError();
 
 	// copy result from the device to the host:
-	cudaMemcpy(?????, ?????, NUMTRIALS * sizeof(int), cudaMemcpyDeviceToHost);
+	cudaMemcpy(hsuccesses, dsuccesses, NUMTRIALS * sizeof(int), cudaMemcpyDeviceToHost);
 	CudaCheckError();
 
 	// compute the sum :
 	int numSuccesses = 0;
 	for (int i = 0; i < NUMTRIALS; i++)
 	{
-		numSuccesses += ?????[i];
+		numSuccesses += hsuccesses[i];
 	}
 
 	float probability = (float)numSuccesses / (float)NUMTRIALS;
